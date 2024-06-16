@@ -135,4 +135,7 @@ public class Tensor {
         sb.append("]");
     }
 
+//    public Tensor indexing(String indices){
+//
+//    }
 }
