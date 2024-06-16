@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -16,6 +15,7 @@ public class Tensor {
     private IntArrayList shape;
     private IntArrayList stride;
 
+    @Autowired
     public Tensor(List<?> inputArray) {
         this.data = new DoubleArrayList();
         this.shape = new IntArrayList();
@@ -24,7 +24,6 @@ public class Tensor {
         this.stride = setStride(this.shape);
     }
 
-    @Autowired
     public Tensor(DoubleArrayList data, IntArrayList shape){
         this.data = data;
         this.shape = shape;
@@ -32,7 +31,7 @@ public class Tensor {
     }
 
 
-    //Following methods are called in the constructor to initalise a tensor.
+    //Following methods are called in the constructor to initialise a tensor.
 
     /**
      * private void initialise(List<?> array)
@@ -102,7 +101,6 @@ public class Tensor {
     public IntArrayList getShape() {
         return shape;
     }
-
 
     public DoubleArrayList getData() {
         return data;

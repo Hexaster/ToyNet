@@ -1,19 +1,12 @@
 package Data;
 
-import com.andrew.toynet.ToyNetApplication;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
-
-import java.util.ArrayList;
 import java.util.List;
 
 import static Data.arrayHelper.array;
@@ -24,7 +17,7 @@ public class TensorTest {
     private ApplicationContext context;
 
     @Test
-    public void testCreatingTensor() {
+    public void testCreatingTensor(){
         DoubleArrayList expectedData;
         IntArrayList expectedShape;
         IntArrayList expectedStride;
