@@ -1,8 +1,11 @@
 package Data;
 
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +42,9 @@ public class Tensor {
     private IntArrayList shape;
     private IntArrayList stride;
 
+
     @Autowired
+    private final ApplicationContext context = new AnnotationConfigApplicationContext(DataConfig.class);
     public Tensor(List<?> inputArray) {
         this.data = new DoubleArrayList();
         this.shape = new IntArrayList();
@@ -192,11 +197,81 @@ public class Tensor {
      *    sbi affects shape[i], if it is a single number, remove one dimension.
      *    After doing so we already get a new tensor.
      * 5. Step 4 deals with one lb, then call this method recursively for all lb's.
-     * @param indices the string indicates the way to slice the tensor
+     * @param lbs the string contains multiple lbs
      * @return a new tensor that aligns the rule
      */
-    public Tensor get(String indices){
+    public Tensor get(String lbs){
+        // 1. parse lbs
+        List<String> listLbs = Parser.parseParentheses(lbs);
 
+        // We process lbs one by one
+        for (String sbs : listLbs){
+            // 2. parse commas to get a list of sbs
+            List<String> listSbs = Parser.parseComma(sbs);
+
+//            for (String sb : listSbs){
+//
+//            }
+        }
         return new Tensor(array(0));
+    }
+
+    /**
+     * This is a helper method for get() method for continuous sb cases, b and c.
+     * Given a sb, first detect whether the string contains a colon.
+     * For a particular layer:
+     * If without colon:
+     *   The sb should be a single number, suppose the number is i.
+     *   The start index should be i*stride[layer]
+     *   The length of data should be stride[layer]
+     *   Delete shape[layer]
+     * If with colon:
+     *   If num1:num2:
+     *     start index = num1*stride[layer]
+     *     end index = num2*stride[layer]
+     *   if num1:
+     *     end index = shape[layer]*stride[layer]
+     *   if :num2:
+     *     start index = 0
+     * If with brackets:
+     *   Should not have any colons
+     *   Get data one by one
+     *   Can reuse parseParentheses and parseComma
+     *   set shape[layer] as the length if the bracket.
+     * @param tensor the tensor to be sliced
+     * @param layer the layer for operation
+     * @param sb the sb with indices
+     * @return the tensor after being sliced
+     */
+    private Tensor getHelper(Tensor tensor, int layer, String sb){
+        DoubleArrayList data = tensor.getData();
+        IntArrayList shape = tensor.getShape();
+        IntArrayList stride = tensor.getStride();
+        DoubleArrayList newData = new DoubleArrayList();
+
+        // With brackets
+        if (sb.contains("[")){
+            // There should not have any colons in brackets
+            assert !sb.contains(":"):"invalid syntax";
+
+            // The form of sb should like [num1, num2, ...], we can parse the brackets
+            // Since there's only one set of brackets, the size of the output from parseParentheses is always 1.
+            // Then parse commas to get indices.
+            String indices = Parser.parseParentheses(sb).get(0);
+            List<String> indicesList = Parser.parseComma(indices);
+
+            // For indicesList {idx1, idx2, ...}, add data to newData
+            for (String index : indicesList){
+                int indexInt = Integer.parseInt(index);
+                if (indexInt < 0)
+                    indexInt += shape.getInt(layer);
+                DoubleList dataItem = data.subList(indexInt*stride.getInt(layer), (indexInt+1)*stride.getInt(layer));
+                newData.addAll(dataItem);
+            }
+            // Update new shape
+            shape.set(layer, newData.size());
+            return (Tensor) context.getBean("tensorDir", newData, shape);
+        }
+        return (Tensor) context.getBean("tensorDir", newData, shape);
     }
 }

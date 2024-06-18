@@ -19,6 +19,10 @@ public class ParserTest {
         expected.add("0,1");
         expected.add("[0,1]");
         Assertions.assertEquals(expected, Parser.parseParentheses(input));
+
+        // Test invalid syntax
+        String inputInvalid = "[0:3][2:][:1][0][0,1][[0,1]";
+        Assertions.assertThrows(AssertionError.class, () -> Parser.parseParentheses(inputInvalid));
     }
 
     @Test
@@ -32,5 +36,10 @@ public class ParserTest {
         expected.add(":1");
         expected.add("-1:");
         Assertions.assertEquals(expected, Parser.parseComma(input));
+
+        // Test invalid syntax
+        String inputInvalid = "0,[0,1,:,1:2,:1,-1:";
+        Assertions.assertThrows(AssertionError.class, () -> Parser.parseComma(inputInvalid));
     }
+
 }

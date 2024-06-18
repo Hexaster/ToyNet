@@ -11,17 +11,17 @@ import java.util.List;
 
 @Configuration
 @ComponentScan(basePackages = "Data")
-public class TensorConfig {
+public class DataConfig {
 
     @Bean
     @Scope("prototype")
-    public Tensor tensorFromArray(List<?> array) {
+    public Tensor tensorArray(List<?> array) {
         return new Tensor(array);
     }
 
     @Bean
     @Scope("prototype")
-    public Tensor tensorFromDataShape(DoubleArrayList data, IntArrayList shape) {
+    public Tensor tensorDir(DoubleArrayList data, IntArrayList shape) {
         return new Tensor(data, shape);
     }
 }

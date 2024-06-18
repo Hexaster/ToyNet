@@ -60,6 +60,7 @@ public class Parser {
                 sb.append(c);
             }
         }
+        assert brackets == 0 : "invalid syntax";
         return result;
     }
 
@@ -91,6 +92,7 @@ public class Parser {
             sb.append(c);
         }
         result.add(sb.toString());
+        assert brackets == 0 : "invalid syntax";
         return result;
     }
 
