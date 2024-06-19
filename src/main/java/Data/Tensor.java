@@ -269,7 +269,39 @@ public class Tensor {
             }
             // Update new shape
             shape.set(layer, indicesList.size());
-            return (Tensor) this.context.getBean("tensorDir", newData, shape);
+        }
+
+        // Without brackets
+        else{
+            String[] indices = sb.split(":");
+
+            // Without colon
+            if (indices.length == 1){
+                int indexInt = Integer.parseInt(indices[0]);
+                if (indexInt < 0)
+                    indexInt += shape.getInt(layer);
+                newData.addAll(data.subList(indexInt*stride.getInt(layer), (indexInt+1)*stride.getInt(layer)));
+                shape.removeInt(layer);
+            }
+
+            // With a colon
+            else if (indices.length == 2){
+                // Get the start and end offset
+                int startOffset = indices[0].isEmpty()?0:Integer.parseInt(indices[0]);
+                int endOffset = indices[1].isEmpty()?shape.getInt(layer):Integer.parseInt(indices[1]);
+                if (startOffset < 0)
+                    startOffset += shape.getInt(layer);
+                if (endOffset < 0)
+                    endOffset += shape.getInt(layer);
+                assert startOffset <= endOffset : "start offset should be less than end offset";
+                newData.addAll(data.subList(startOffset*stride.getInt(layer), endOffset*stride.getInt(layer)));
+                shape.set(layer, endOffset - startOffset);
+            }
+
+            // With more than one colon, which is illegal.
+            else{
+                throw new IllegalArgumentException("invalid syntax");
+            }
         }
         return (Tensor) this.context.getBean("tensorDir", newData, shape);
     }

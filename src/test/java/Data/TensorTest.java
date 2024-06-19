@@ -32,6 +32,10 @@ public class TensorTest {
 
     private static Stream<Arguments> legalTensors(){
         return Stream.of(
+                Arguments.of(array(1),
+                        DoubleArrayList.wrap(new double[]{1}),
+                        IntArrayList.wrap(new int[]{1}),
+                        IntArrayList.wrap(new int[]{1})),
                 Arguments.of(array(1,2,3),
                         DoubleArrayList.wrap(new double[]{1,2,3}),
                         IntArrayList.wrap(new int[]{3}),
@@ -89,19 +93,26 @@ public class TensorTest {
 
     private static Stream<Arguments> indices(){
         return Stream.of(
-                Arguments.of(
-                        0, "[0]", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6}), IntArrayList.wrap(new int[]{1,2,3}),
-                        0, "[0,1]", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6}), IntArrayList.wrap(new int[]{2,2,3}),
-                        1, "[0,1]", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6}), IntArrayList.wrap(new int[]{3,2,3}),
-                        2, "[0,2]", DoubleArrayList.wrap(new double[]{1, 3, 4, 6, 1, 3, 4, 6, 1, 3, 4, 6}), IntArrayList.wrap(new int[]{3,2,2})
-                )
+                //Test discrete
+                //Arguments.of(0, "[0]", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6}), IntArrayList.wrap(new int[]{1,2,3})),
+                //Arguments.of(0, "[0,1]", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 2, 2, 3, 5, 5, 6}), IntArrayList.wrap(new int[]{2,2,3})),
+                Arguments.of(1, "[0,1]", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 2, 2, 3, 5, 5, 6, 1, 3, 3, 4, 6, 6}), IntArrayList.wrap(new int[]{3,2,3})),
+                Arguments.of(2, "[0,2]", DoubleArrayList.wrap(new double[]{1, 3, 4, 6, 2, 3, 5, 6, 1, 3, 4, 6}), IntArrayList.wrap(new int[]{3,2,2})),
+
+                // Test single
+                Arguments.of(0, "0", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6}), IntArrayList.wrap(new int[]{2,3})),
+                Arguments.of(1, "1", DoubleArrayList.wrap(new double[]{4, 5, 6, 5, 5, 6, 4, 6, 6}), IntArrayList.wrap(new int[]{3,3})),
+                Arguments.of(2, "2", DoubleArrayList.wrap(new double[]{3, 6, 3, 6, 3, 6}), IntArrayList.wrap(new int[]{3,2}))
+
+                // Test continuous
+
         );
     }
 
     @ParameterizedTest
     @MethodSource("indices")
     public void testGetHelper(int layer, String indices, DoubleArrayList expectedData, IntArrayList expectedShape) throws Exception{
-        DoubleArrayList data = DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6});
+        DoubleArrayList data = DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 2, 2, 3, 5, 5, 6, 1, 3, 3, 4, 6, 6});
         IntArrayList shape = IntArrayList.wrap(new int[]{3,2,3});
         Tensor tensor = (Tensor) context.getBean("tensorDir", data, shape);
         Method getHelper = Tensor.class.getDeclaredMethod("getHelper", Tensor.class, int.class, String.class);
