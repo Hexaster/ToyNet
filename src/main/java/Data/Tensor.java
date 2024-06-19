@@ -41,10 +41,9 @@ public class Tensor {
     private DoubleArrayList data;
     private IntArrayList shape;
     private IntArrayList stride;
-
+    private final ApplicationContext context = new AnnotationConfigApplicationContext(DataConfig.class);
 
     @Autowired
-    private final ApplicationContext context = new AnnotationConfigApplicationContext(DataConfig.class);
     public Tensor(List<?> inputArray) {
         this.data = new DoubleArrayList();
         this.shape = new IntArrayList();
@@ -129,11 +128,11 @@ public class Tensor {
         return shape;
     }
 
-    public DoubleArrayList getData() {
+    protected DoubleArrayList getData() {
         return data;
     }
 
-    public IntArrayList getStride() {
+    protected IntArrayList getStride() {
         return stride;
     }
 
@@ -269,9 +268,9 @@ public class Tensor {
                 newData.addAll(dataItem);
             }
             // Update new shape
-            shape.set(layer, newData.size());
-            return (Tensor) context.getBean("tensorDir", newData, shape);
+            shape.set(layer, indicesList.size());
+            return (Tensor) this.context.getBean("tensorDir", newData, shape);
         }
-        return (Tensor) context.getBean("tensorDir", newData, shape);
+        return (Tensor) this.context.getBean("tensorDir", newData, shape);
     }
 }
