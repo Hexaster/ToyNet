@@ -1,6 +1,7 @@
 package com.andrew.toynet;
 
 import Data.Tensor;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,20 +20,11 @@ public class ToyNetApplication {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(ToyNetApplication.class, args);
-        List<?> highDimensionalArray = array(
-                array(array(1, 2, 3),
-                        array(4, 5, 6),
-                        array(7, 8, 9)),
-                array(array(1, 2, 3),
-                        array(4, 5, 6),
-                        array(7, 8, 9)),
-                array(array(1, 2, 3),
-                        array(4, 5, 6),
-                        array(7, 8, 9))
-        );
-
-        Tensor tensor = context.getBean(Tensor.class, highDimensionalArray);
-        System.out.println(tensor.toString());
+        DoubleArrayList a = new DoubleArrayList();
+        a.add(1);
+        a.add(2);
+        a.add(3);
+        System.out.println(a.getDouble(a.size()-1));
     }
 
 }

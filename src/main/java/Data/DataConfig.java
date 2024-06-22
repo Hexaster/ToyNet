@@ -14,13 +14,13 @@ import java.util.List;
 public class DataConfig {
 
     @Bean
-    @Scope("prototype")
+    @Scope(value = "prototype")
     public Tensor tensorArray(List<?> array) {
         return new Tensor(array);
     }
 
     @Bean
-    @Scope("prototype")
+    @Scope(value = "prototype")
     public Tensor tensorDir(DoubleArrayList data, IntArrayList shape) {
         return new Tensor(data, shape);
     }

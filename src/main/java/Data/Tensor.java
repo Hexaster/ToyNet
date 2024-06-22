@@ -41,6 +41,7 @@ public class Tensor {
     private DoubleArrayList data;
     private IntArrayList shape;
     private IntArrayList stride;
+    private IntArrayList blocks;
     private final ApplicationContext context = new AnnotationConfigApplicationContext(DataConfig.class);
 
     @Autowired
@@ -50,17 +51,17 @@ public class Tensor {
         setData(inputArray);
         setShape(inputArray);
         this.stride = setStride(this.shape);
+        this.blocks = setBlocks(this.shape);
     }
 
     public Tensor(DoubleArrayList data, IntArrayList shape){
         this.data = data;
         this.shape = shape;
         this.stride = setStride(this.shape);
+        this.blocks = setBlocks(this.shape);
     }
 
-
-    //Following methods are called in the constructor to initialise a tensor.
-
+    //Setters
     /**
      * private void initialise(List<?> array)
      * Getting the shape of the array, recursively.
@@ -81,7 +82,6 @@ public class Tensor {
         if ((array.get(0) instanceof List))
             setShape((List<?>) array.get(0));
     }
-
 
     /**
      * Given the input array, store elements to this.data
@@ -123,41 +123,19 @@ public class Tensor {
         return stride;
     }
 
-    // Following methods get sth from a tensor.
-    public IntArrayList getShape() {
-        return shape;
-    }
-
-    protected DoubleArrayList getData() {
-        return data;
-    }
-
-    protected IntArrayList getStride() {
-        return stride;
-    }
-
-
     /**
-     * A method for printing the tensor with its original shape.
+     * Set the number of blocks of the tensor.
+     * Given the shape, the number of blocks of the i-th layer is the multiplication of first i-1 dimensions
+     * @param shape the shape list
+     * @return the list of blocks
      */
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        toStringHelper(sb, 0, 0);
-        return "Tensor{" + sb + '}';
-    }
-    private void toStringHelper(StringBuilder sb, int dim, int index){
-        if (dim == this.shape.size()) {
-            sb.append(this.data.getDouble(index));
-            return;
+    private IntArrayList setBlocks(IntArrayList shape){
+        blocks = new IntArrayList();
+        blocks.add(1); // The apex layer always has one block
+        for (int d = 0; d < shape.size()-1; d++) {
+            blocks.add(blocks.getInt(blocks.size()-1)*shape.getInt(d));
         }
-        sb.append("[");
-        for (int i = 0; i < this.shape.getInt(dim); i++) {
-            if (i > 0)
-                sb.append(", ");
-            toStringHelper(sb, dim + 1, index + i * this.stride.getInt(dim));
-        }
-        sb.append("]");
+        return blocks;
     }
 
     /**
@@ -218,7 +196,9 @@ public class Tensor {
     /**
      * This is a helper method for get() method for continuous sb cases, b and c.
      * Given a sb, first detect whether the string contains a colon.
-     * For a particular layer:
+     * For a specific index, the formula of adding data is:
+     * index*stride[layer]+block*stride[layer-1] : (index+1)*stride[layer]+block*stride[layer-1]
+     * For a particular layer, DO FOLLOWING ON ALL BLOCKS:
      * If without colon:
      *   The sb should be a single number, suppose the number is i.
      *   The start index should be i*stride[layer]
@@ -246,7 +226,11 @@ public class Tensor {
         DoubleArrayList data = tensor.getData();
         IntArrayList shape = tensor.getShape();
         IntArrayList stride = tensor.getStride();
+        IntArrayList blocks = tensor.getBlocks();
         DoubleArrayList newData = new DoubleArrayList();
+
+        // If it is the first layer, the stride[layer-1] is always 1
+        int lastStride = layer==0?1:stride.getInt(layer-1);
 
         // With brackets
         if (sb.contains("[")){
@@ -260,13 +244,18 @@ public class Tensor {
             List<String> indicesList = Parser.parseComma(indices);
 
             // For indicesList {idx1, idx2, ...}, add data to newData
-            for (String index : indicesList){
-                int indexInt = Integer.parseInt(index);
-                if (indexInt < 0)
-                    indexInt += shape.getInt(layer);
-                DoubleList dataItem = data.subList(indexInt*stride.getInt(layer), (indexInt+1)*stride.getInt(layer));
-                newData.addAll(dataItem);
+            for (int block = 0; block < blocks.getInt(layer); block++){
+                for (String index : indicesList){
+                    int indexInt = Integer.parseInt(index);
+                    if (indexInt < 0)
+                        indexInt += shape.getInt(layer);
+                    assert indexInt < shape.getInt(layer) : "index out of bounds";
+                    int startIdx = indexInt*stride.getInt(layer)+block*lastStride;
+                    int endIdx = (indexInt+1)*stride.getInt(layer)+block*lastStride;
+                    newData.addAll(data.subList(startIdx, endIdx));
+                }
             }
+
             // Update new shape
             shape.set(layer, indicesList.size());
         }
@@ -274,35 +263,78 @@ public class Tensor {
         // Without brackets
         else{
             String[] indices = sb.split(":");
-
+            int startOffset;
+            int endOffset;
             // Without colon
             if (indices.length == 1){
-                int indexInt = Integer.parseInt(indices[0]);
-                if (indexInt < 0)
-                    indexInt += shape.getInt(layer);
-                newData.addAll(data.subList(indexInt*stride.getInt(layer), (indexInt+1)*stride.getInt(layer)));
+                startOffset = Integer.parseInt(indices[0]);
+                if (startOffset < 0)
+                    startOffset += shape.getInt(layer);
+                endOffset = startOffset+1;
+                assert startOffset <= endOffset && startOffset < shape.getInt(layer) && endOffset <= shape.getInt(layer): "index out of bounds";
+
                 shape.removeInt(layer);
             }
-
             // With a colon
             else if (indices.length == 2){
-                // Get the start and end offset
-                int startOffset = indices[0].isEmpty()?0:Integer.parseInt(indices[0]);
-                int endOffset = indices[1].isEmpty()?shape.getInt(layer):Integer.parseInt(indices[1]);
+                startOffset = indices[0].isEmpty()?0:Integer.parseInt(indices[0]);
+                endOffset = indices[1].isEmpty()?shape.getInt(layer):Integer.parseInt(indices[1]);
                 if (startOffset < 0)
                     startOffset += shape.getInt(layer);
                 if (endOffset < 0)
                     endOffset += shape.getInt(layer);
-                assert startOffset <= endOffset : "start offset should be less than end offset";
-                newData.addAll(data.subList(startOffset*stride.getInt(layer), endOffset*stride.getInt(layer)));
+                assert startOffset <= endOffset && startOffset < shape.getInt(layer) && endOffset <= shape.getInt(layer): "index out of bounds";
                 shape.set(layer, endOffset - startOffset);
             }
-
             // With more than one colon, which is illegal.
             else{
                 throw new IllegalArgumentException("invalid syntax");
             }
+
+            // For each block, add data to newData
+            for (int block = 0; block < blocks.getInt(layer); block++){
+                int startIdx = startOffset*stride.getInt(layer)+block*lastStride;
+                int endIdx = endOffset*stride.getInt(layer)+block*lastStride;
+                newData.addAll(data.subList(startIdx, endIdx));
+            }
         }
         return (Tensor) this.context.getBean("tensorDir", newData, shape);
+    }
+
+
+    // Getters
+    public IntArrayList getShape() {
+        return shape;
+    }
+
+    protected DoubleArrayList getData() {
+        return data;
+    }
+
+    protected IntArrayList getStride() {
+        return stride;
+    }
+    protected IntArrayList getBlocks() {
+        return blocks;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        toStringHelper(sb, 0, 0);
+        return "Tensor{" + sb + '}';
+    }
+    private void toStringHelper(StringBuilder sb, int dim, int index){
+        if (dim == this.shape.size()) {
+            sb.append(this.data.getDouble(index));
+            return;
+        }
+        sb.append("[");
+        for (int i = 0; i < this.shape.getInt(dim); i++) {
+            if (i > 0)
+                sb.append(", ");
+            toStringHelper(sb, dim + 1, index + i * this.stride.getInt(dim));
+        }
+        sb.append("]");
     }
 }
