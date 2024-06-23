@@ -97,6 +97,7 @@ public class TensorTest {
         Assertions.assertEquals(expectedBlocks, tensorByDataAndShape.getBlocks());
     }
 
+    // The test tensor being used for following tests
     private Tensor testTensor;
     @BeforeEach
     public void setUpTensor(){
@@ -105,7 +106,8 @@ public class TensorTest {
         testTensor = (Tensor) context.getBean("tensorDir", data, shape);
     }
 
-    private static Stream<Arguments> indices(){
+    // The getHelper test
+    private static Stream<Arguments> getHelperTestCase(){
         return Stream.of(
                 //Test discrete
                 Arguments.of(0, "[0]", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 7, 8}), IntArrayList.wrap(new int[]{1,2,4})),
@@ -114,9 +116,9 @@ public class TensorTest {
                 Arguments.of(2, "[0,2]", DoubleArrayList.wrap(new double[]{1, 3, 5, 7, 2, 3, 5, 7, 1, 3, 5, 6}), IntArrayList.wrap(new int[]{3,2,2})),
 
                 // Test single
-                Arguments.of(0, "0", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 7, 8}), IntArrayList.wrap(new int[]{2,4})),
-                Arguments.of(1, "1", DoubleArrayList.wrap(new double[]{5, 6, 7, 8, 5, 5, 7, 8, 5, 6, 6, 8}), IntArrayList.wrap(new int[]{3,4})),
-                Arguments.of(2, "2", DoubleArrayList.wrap(new double[]{3, 7, 3, 7, 3, 6}), IntArrayList.wrap(new int[]{3,2})),
+                Arguments.of(0, "0", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 7, 8}), IntArrayList.wrap(new int[]{1,2,4})),
+                Arguments.of(1, "1", DoubleArrayList.wrap(new double[]{5, 6, 7, 8, 5, 5, 7, 8, 5, 6, 6, 8}), IntArrayList.wrap(new int[]{3,1,4})),
+                Arguments.of(2, "2", DoubleArrayList.wrap(new double[]{3, 7, 3, 7, 3, 6}), IntArrayList.wrap(new int[]{3,2,1})),
 
                 // Test continuous
                 Arguments.of(0, "0:1", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 7, 8}), IntArrayList.wrap(new int[]{1,2,4})),
@@ -126,15 +128,34 @@ public class TensorTest {
                 Arguments.of(2, "2:3", DoubleArrayList.wrap(new double[]{3, 7, 3, 7, 3, 6}), IntArrayList.wrap(new int[]{3,2,1}))
                 );
     }
-
     @ParameterizedTest
-    @MethodSource("indices")
+    @MethodSource("getHelperTestCase")
     public void testGetHelper(int layer, String indices, DoubleArrayList expectedData, IntArrayList expectedShape) throws Exception{
         Method getHelper = Tensor.class.getDeclaredMethod("getHelper", Tensor.class, int.class, String.class);
         getHelper.setAccessible(true);
         Object[] args = {testTensor, layer, indices};
         Tensor result = (Tensor) getHelper.invoke(testTensor, args);
 
+        Assertions.assertEquals(expectedData, result.getData());
+        Assertions.assertEquals(expectedShape, result.getShape());
+    }
+
+    // The get test
+    private static Stream<Arguments> getTestCase(){
+        return Stream.of(
+                Arguments.of("[0]", DoubleArrayList.wrap(new double[]{1, 2, 3, 4, 5, 6, 7, 8}), IntArrayList.wrap(new int[]{2,4})),
+                Arguments.of("[:,1]", DoubleArrayList.wrap(new double[]{5, 6, 7, 8, 5, 5, 7, 8, 5, 6, 6, 8}), IntArrayList.wrap(new int[]{3,4})),
+                Arguments.of("[[0],1]", DoubleArrayList.wrap(new double[]{5, 6, 7, 8}), IntArrayList.wrap(new int[]{1,4})),
+                Arguments.of("[0,1]", DoubleArrayList.wrap(new double[]{5, 6, 7, 8}), IntArrayList.wrap(new int[]{4})),
+                Arguments.of("[0][1]", DoubleArrayList.wrap(new double[]{5, 6, 7, 8}), IntArrayList.wrap(new int[]{4})),
+                Arguments.of("[[0,2],1]", DoubleArrayList.wrap(new double[]{5, 6, 7, 8, 5, 6, 6, 8}), IntArrayList.wrap(new int[]{2,4})),
+                Arguments.of("[:,:,3:]", DoubleArrayList.wrap(new double[]{4, 8, 4, 8, 4, 8}), IntArrayList.wrap(new int[]{3,2,1}))
+        );
+    }
+    @ParameterizedTest
+    @MethodSource("getTestCase")
+    public void testGet(String lbs, DoubleArrayList expectedData, IntArrayList expectedShape){
+        Tensor result = testTensor.get(lbs);
         Assertions.assertEquals(expectedData, result.getData());
         Assertions.assertEquals(expectedShape, result.getShape());
     }

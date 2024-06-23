@@ -9,6 +9,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 import static Data.arrayHelper.array;
@@ -138,6 +139,21 @@ public class Tensor {
         return blocks;
     }
 
+    /*
+    Following methods manipulate the tensor.
+    1. copy, copy a new tensor that with exactly same data and shape of a given tensor.
+    2.
+     */
+
+    /**
+     * Get a copy of a tensor
+     * @param tensor the tensor to be copied
+     * @return the copied tensor
+     */
+    public Tensor copy(Tensor tensor){
+        return (Tensor) context.getBean("tensorDir", tensor.getData(), tensor.getShape());
+    }
+
     /**
      * This method essentially imitates the way of indexing and slicing tensors in Python.
      * To solve such a complicated problem, several parsers are used, please refer to the Parser class.
@@ -173,11 +189,13 @@ public class Tensor {
      *    About shape:
      *    sbi affects shape[i], if it is a single number, remove one dimension.
      *    After doing so we already get a new tensor.
-     * 5. Step 4 deals with one lb, then call this method recursively for all lb's.
+     * 5. Step 4 deals with one lb, then call this method recursively for all lbs.
      * @param lbs the string contains multiple lbs
      * @return a new tensor that aligns the rule
      */
-    public Tensor get(String lbs){
+    public Tensor get(String lbs) {
+        Tensor tensorBeingSliced = copy(this);
+
         // 1. parse lbs
         List<String> listLbs = Parser.parseParentheses(lbs);
 
@@ -185,12 +203,25 @@ public class Tensor {
         for (String sbs : listLbs){
             // 2. parse commas to get a list of sbs
             List<String> listSbs = Parser.parseComma(sbs);
+            int layer = 0;
+            IntArrayList dim2BRemoved = new IntArrayList();
+            for (String sb : listSbs){
+                if (!sb.contains("[") && !sb.contains(":")){
+                    dim2BRemoved.add(layer);
+                }
+                tensorBeingSliced = getHelper(tensorBeingSliced, layer, sb);
+                layer++;
+            }
 
-//            for (String sb : listSbs){
-//
-//            }
+            // Remove redundant dimensions
+            Collections.reverse(dim2BRemoved);
+            for (int i : dim2BRemoved){
+                tensorBeingSliced.shape.removeInt(i);
+            }
+            tensorBeingSliced.stride = setStride(tensorBeingSliced.shape);
+            tensorBeingSliced.blocks = setBlocks(tensorBeingSliced.shape);
         }
-        return new Tensor(array(0));
+        return tensorBeingSliced;
     }
 
     /**
@@ -203,7 +234,8 @@ public class Tensor {
      *   The sb should be a single number, suppose the number is i.
      *   The start index should be i*stride[layer]
      *   The length of data should be stride[layer]
-     *   Delete shape[layer]
+     *   Delete shape[layer], however, for accurate result, here set the dimension as 1 first,
+     *   then delete them after slicing is completed.
      * If with colon:
      *   If num1:num2:
      *     start index = num1*stride[layer]
@@ -262,33 +294,49 @@ public class Tensor {
 
         // Without brackets
         else{
-            String[] indices = sb.split(":");
             int startOffset;
             int endOffset;
             // Without colon
-            if (indices.length == 1){
-                startOffset = Integer.parseInt(indices[0]);
+            if (!sb.contains(":")){
+                startOffset = Integer.parseInt(sb);
                 if (startOffset < 0)
                     startOffset += shape.getInt(layer);
                 endOffset = startOffset+1;
                 assert startOffset <= endOffset && startOffset < shape.getInt(layer) && endOffset <= shape.getInt(layer): "index out of bounds";
 
-                shape.removeInt(layer);
+                // Instead of remove one dimension directly, set it to 1 temporarily for accurate result
+                //shape.removeInt(layer);
+                shape.set(layer, 1);
             }
             // With a colon
-            else if (indices.length == 2){
-                startOffset = indices[0].isEmpty()?0:Integer.parseInt(indices[0]);
-                endOffset = indices[1].isEmpty()?shape.getInt(layer):Integer.parseInt(indices[1]);
-                if (startOffset < 0)
-                    startOffset += shape.getInt(layer);
-                if (endOffset < 0)
-                    endOffset += shape.getInt(layer);
+            else{
+                String[] indices = sb.split(":");
+                // :
+                if (indices.length == 0){
+                    startOffset = 0;
+                    endOffset = shape.getInt(layer);
+                }
+                // num:
+                else if (indices.length == 1){
+                    startOffset = Integer.parseInt(indices[0])<0?Integer.parseInt(indices[0])+shape.getInt(layer):Integer.parseInt(indices[0]);
+                    endOffset = shape.getInt(layer);
+                }
+                else if (indices.length == 2){
+                    // :num
+                    if (indices[0].isEmpty()){
+                        startOffset = 0;
+                    }
+                    // num:num
+                    else{
+                        startOffset = Integer.parseInt(indices[0])<0?Integer.parseInt(indices[0])+shape.getInt(layer):Integer.parseInt(indices[0]);
+                    }
+                    endOffset = Integer.parseInt(indices[1])<0?Integer.parseInt(indices[1])+shape.getInt(layer):Integer.parseInt(indices[1]);
+                } else{
+                    throw new IllegalArgumentException("invalid syntax");
+                }
+
                 assert startOffset <= endOffset && startOffset < shape.getInt(layer) && endOffset <= shape.getInt(layer): "index out of bounds";
                 shape.set(layer, endOffset - startOffset);
-            }
-            // With more than one colon, which is illegal.
-            else{
-                throw new IllegalArgumentException("invalid syntax");
             }
 
             // For each block, add data to newData

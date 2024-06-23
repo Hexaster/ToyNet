@@ -19,12 +19,13 @@ import static Data.arrayHelper.array;
 public class ToyNetApplication {
 
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(ToyNetApplication.class, args);
-        DoubleArrayList a = new DoubleArrayList();
-        a.add(1);
-        a.add(2);
-        a.add(3);
-        System.out.println(a.getDouble(a.size()-1));
+        //ConfigurableApplicationContext context = SpringApplication.run(ToyNetApplication.class, args);
+        long startTime = System.nanoTime();
+        List<Integer> a = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+        System.out.println(a.get(0));
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
+        System.out.println(duration);
     }
 
 }
