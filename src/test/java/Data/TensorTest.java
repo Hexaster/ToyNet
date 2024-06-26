@@ -160,4 +160,17 @@ public class TensorTest {
         Assertions.assertEquals(expectedShape, result.getShape());
     }
 
+    // Test broadcast
+    @Test
+    public void testBroadCast() throws Exception {
+        Method broadCast = Tensor.class.getDeclaredMethod("broadCast", Tensor.class, Tensor.class);
+        broadCast.setAccessible(true);
+
+        Tensor shortTensor = (Tensor) context.getBean("tensorDir", DoubleArrayList.wrap(new double[]{1, 2, 3}), IntArrayList.wrap(new int[]{3}));
+        Tensor longTensor = (Tensor) context.getBean("tensorDir", DoubleArrayList.wrap(new double[]{4, 5, 6}), IntArrayList.wrap(new int[]{3}));
+
+        Object[] args = {shortTensor, longTensor};
+        Tensor result = (Tensor) broadCast.invoke(shortTensor, args);
+        Assertions.assertEquals(shortTensor, result);
+    }
 }

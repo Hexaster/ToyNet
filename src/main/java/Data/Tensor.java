@@ -350,6 +350,41 @@ public class Tensor {
     }
 
 
+    /**
+     * Broadcast a short tensor to the long tensor
+     * 1. Matching Dimensions: Start with the rightmost dimension.
+     * Two dimensions are compatible for broadcasting if:
+     * They are equal, or one of them is 1
+     * 2. If the short tensor has fewer dimensions than the long one, pad with ones on the leading side.
+     * 3. If an array has a dimension of 1, broadcast it to match the long tensor
+     * @param shortTensor the short tensor to broadcast
+     * @param longTensor the long tensor
+     * @return the broadcast short tensor
+     */
+    private static Tensor broadCast(Tensor shortTensor, Tensor longTensor){
+        // Pad dimensions
+        while (shortTensor.shape.size() < longTensor.shape.size()) {
+            shortTensor.shape.add(0, 1);
+        }
+
+        // Matching dimensions
+        for (int i = longTensor.shape.size()-1; i >= 0; i--) {
+            int shortDim = shortTensor.shape.getInt(i);
+            int longDim = longTensor.shape.getInt(i);
+            if (shortDim != longDim) {
+                if (shortDim == 1) {
+                    for (int j = 0; j < longTensor.blocks.getInt(i); j++) {
+                        shortTensor.data.addAll(shortTensor.data.subList(0, shortTensor.data.size()));
+                    }
+                    shortTensor.shape.set(i, longDim);
+                } else{
+                    throw new IllegalArgumentException("Cannot broadcast tensors");
+                }
+            }
+        }
+        return shortTensor;
+    }
+
     // Getters
     public IntArrayList getShape() {
         return shape;
