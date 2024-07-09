@@ -51,15 +51,15 @@ public class Tensor {
         this.shape = new IntArrayList();
         setData(inputArray);
         setShape(inputArray);
-        this.stride = setStride(this.shape);
-        this.blocks = setBlocks(this.shape);
+        setStride();
+        setBlocks();
     }
 
     public Tensor(DoubleArrayList data, IntArrayList shape){
         this.data = data;
         this.shape = shape;
-        this.stride = setStride(this.shape);
-        this.blocks = setBlocks(this.shape);
+        setStride();
+        setBlocks();
     }
 
     //Setters
@@ -112,31 +112,25 @@ public class Tensor {
      * shape = [3, 3, 3]
      * stride = [9, 3, 1]
      * If shape is one-dimensional, the stride is always [1].
-     * @param shape An IntArrayList of shape
-     * @return An IntArrayList of stride
      */
-    private IntArrayList setStride(IntArrayList shape){
-        stride = new IntArrayList();
-        stride.add(1);
-        for (int d = shape.size()-1; d > 0; d--) {
-            stride.add(0, stride.getInt(0)*shape.getInt(d));
+    private void setStride(){
+        this.stride = new IntArrayList();
+        this.stride.add(1);
+        for (int d = this.shape.size()-1; d > 0; d--) {
+            this.stride.add(0, this.stride.getInt(0)*this.shape.getInt(d));
         }
-        return stride;
     }
 
     /**
      * Set the number of blocks of the tensor.
      * Given the shape, the number of blocks of the i-th layer is the multiplication of first i-1 dimensions
-     * @param shape the shape list
-     * @return the list of blocks
      */
-    private IntArrayList setBlocks(IntArrayList shape){
-        blocks = new IntArrayList();
-        blocks.add(1); // The apex layer always has one block
-        for (int d = 0; d < shape.size()-1; d++) {
-            blocks.add(blocks.getInt(blocks.size()-1)*shape.getInt(d));
+    private void setBlocks(){
+        this.blocks = new IntArrayList();
+        this.blocks.add(1); // The apex layer always has one block
+        for (int d = 0; d < this.shape.size()-1; d++) {
+            this.blocks.add(this.blocks.getInt(this.blocks.size()-1)*this.shape.getInt(d));
         }
-        return blocks;
     }
 
     /*
@@ -146,12 +140,11 @@ public class Tensor {
      */
 
     /**
-     * Get a copy of a tensor
-     * @param tensor the tensor to be copied
+     * Get a copy of this tensor
      * @return the copied tensor
      */
-    public Tensor copy(Tensor tensor){
-        return (Tensor) context.getBean("tensorDir", tensor.getData(), tensor.getShape());
+    public Tensor copy(){
+        return (Tensor) context.getBean("tensorDir", this.getData(), this.getShape());
     }
 
     /**
@@ -194,7 +187,7 @@ public class Tensor {
      * @return a new tensor that aligns the rule
      */
     public Tensor get(String lbs) {
-        Tensor tensorBeingSliced = copy(this);
+        Tensor tensorBeingSliced = this.copy();
 
         // 1. parse lbs
         List<String> listLbs = Parser.parseParentheses(lbs);
@@ -218,8 +211,8 @@ public class Tensor {
             for (int i : dim2BRemoved){
                 tensorBeingSliced.shape.removeInt(i);
             }
-            tensorBeingSliced.stride = setStride(tensorBeingSliced.shape);
-            tensorBeingSliced.blocks = setBlocks(tensorBeingSliced.shape);
+            tensorBeingSliced.setStride();
+            tensorBeingSliced.setBlocks();
         }
         return tensorBeingSliced;
     }
@@ -362,27 +355,30 @@ public class Tensor {
      * @return the broadcast short tensor
      */
     private static Tensor broadCast(Tensor shortTensor, Tensor longTensor){
+        Tensor boardCastedTensor = shortTensor.copy();
         // Pad dimensions
-        while (shortTensor.shape.size() < longTensor.shape.size()) {
-            shortTensor.shape.add(0, 1);
+        while (boardCastedTensor.shape.size() < longTensor.shape.size()) {
+            boardCastedTensor.shape.add(0, 1);
         }
 
         // Matching dimensions
         for (int i = longTensor.shape.size()-1; i >= 0; i--) {
-            int shortDim = shortTensor.shape.getInt(i);
+            int shortDim = boardCastedTensor.shape.getInt(i);
             int longDim = longTensor.shape.getInt(i);
             if (shortDim != longDim) {
                 if (shortDim == 1) {
                     for (int j = 0; j < longTensor.blocks.getInt(i); j++) {
-                        shortTensor.data.addAll(shortTensor.data.subList(0, shortTensor.data.size()));
+                        boardCastedTensor.data.addAll(boardCastedTensor.data.subList(0, boardCastedTensor.data.size()));
                     }
-                    shortTensor.shape.set(i, longDim);
+                    boardCastedTensor.shape.set(i, longDim);
                 } else{
                     throw new IllegalArgumentException("Cannot broadcast tensors");
                 }
             }
         }
-        return shortTensor;
+        boardCastedTensor.setStride();
+        boardCastedTensor.setBlocks();
+        return boardCastedTensor;
     }
 
     // Getters

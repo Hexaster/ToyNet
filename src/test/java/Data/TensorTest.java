@@ -173,4 +173,25 @@ public class TensorTest {
         Tensor result = (Tensor) broadCast.invoke(shortTensor, args);
         Assertions.assertEquals(shortTensor, result);
     }
+
+    // Test broadcast
+    private static Stream<Arguments> broadcastTestCase(){
+        return Stream.of(
+                Arguments.of(DoubleArrayList.wrap(new double[]{1, 2, 3}), IntArrayList.wrap(new int[]{3}),
+                             DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{2, 3}),
+                             DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{2, 3}))
+        );
+    }
+    @ParameterizedTest
+    @MethodSource("broadcastTestCase")
+    public void testBroadcast(DoubleArrayList shortTensorData, IntArrayList shortTensorShape, DoubleArrayList longTensorData, IntArrayList longTensorShape, DoubleArrayList expectedData, IntArrayList expectedShape) throws Exception {
+        Method broadCast = Tensor.class.getDeclaredMethod("broadCast", Tensor.class, Tensor.class);
+        broadCast.setAccessible(true);
+        Tensor shortTensor = (Tensor) context.getBean("tensorDir", shortTensorData, shortTensorShape);
+        Tensor longTensor = (Tensor) context.getBean("tensorDir", longTensorData, longTensorShape);
+        Object[] args = {shortTensor, longTensor};
+        Tensor result = (Tensor) broadCast.invoke(shortTensor, args);
+        Assertions.assertEquals(result.getData(), expectedData);
+        Assertions.assertEquals(result.getShape(), expectedShape);
+    }
 }
