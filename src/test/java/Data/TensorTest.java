@@ -179,7 +179,13 @@ public class TensorTest {
         return Stream.of(
                 Arguments.of(DoubleArrayList.wrap(new double[]{1, 2, 3}), IntArrayList.wrap(new int[]{3}),
                              DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{2, 3}),
-                             DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{2, 3}))
+                             DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{2, 3})),
+                Arguments.of(DoubleArrayList.wrap(new double[]{1, 2, 3}), IntArrayList.wrap(new int[]{3}),
+                                DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{3, 1, 3}),
+                                DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{3, 1, 3})),
+                Arguments.of(DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{3, 1, 3}),
+                        DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{3, 2, 3}),
+                        DoubleArrayList.wrap(new double[]{1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3}), IntArrayList.wrap(new int[]{3, 2, 3}))
         );
     }
     @ParameterizedTest
@@ -191,7 +197,7 @@ public class TensorTest {
         Tensor longTensor = (Tensor) context.getBean("tensorDir", longTensorData, longTensorShape);
         Object[] args = {shortTensor, longTensor};
         Tensor result = (Tensor) broadCast.invoke(shortTensor, args);
-        Assertions.assertEquals(result.getData(), expectedData);
-        Assertions.assertEquals(result.getShape(), expectedShape);
+        Assertions.assertEquals(expectedData, result.getData());
+        Assertions.assertEquals(expectedShape, result.getShape());
     }
 }

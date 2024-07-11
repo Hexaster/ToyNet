@@ -356,6 +356,7 @@ public class Tensor {
      */
     private static Tensor broadCast(Tensor shortTensor, Tensor longTensor){
         Tensor boardCastedTensor = shortTensor.copy();
+        DoubleArrayList data = new DoubleArrayList(boardCastedTensor.data);
         // Pad dimensions
         while (boardCastedTensor.shape.size() < longTensor.shape.size()) {
             boardCastedTensor.shape.add(0, 1);
@@ -367,8 +368,8 @@ public class Tensor {
             int longDim = longTensor.shape.getInt(i);
             if (shortDim != longDim) {
                 if (shortDim == 1) {
-                    for (int j = 0; j < longTensor.blocks.getInt(i); j++) {
-                        boardCastedTensor.data.addAll(boardCastedTensor.data.subList(0, boardCastedTensor.data.size()));
+                    for (int j = 0; j < longDim-1; j++) {
+                        boardCastedTensor.data.addAll(data);
                     }
                     boardCastedTensor.shape.set(i, longDim);
                 } else{
