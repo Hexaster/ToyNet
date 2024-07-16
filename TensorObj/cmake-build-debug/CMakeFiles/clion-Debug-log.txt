@@ -1,0 +1,4 @@
+/Volumes/CLion/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Volumes/CLion/CLion.app/Contents/bin/ninja/mac/aarch64/ninja -G Ninja -S /Users/u7630167/ToyNet/TensorObj -B /Users/u7630167/ToyNet/TensorObj/cmake-build-debug
+-- Configuring done (0.1s)
+-- Generating done (0.4s)
+-- Build files have been written to: /Users/u7630167/ToyNet/TensorObj/cmake-build-debug
