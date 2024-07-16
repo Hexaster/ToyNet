@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.andrew</groupId>
-    <artifactId>ToyNet</artifactId>
+    <artifactId>Net</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>ToyNet</name>
     <description>ToyNet</description>
