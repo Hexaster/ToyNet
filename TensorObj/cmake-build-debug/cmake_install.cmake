@@ -1,4 +1,4 @@
-# Install script for directory: /Users/u7630167/ToyNet/TensorObj
+# Install script for directory: /Users/juneehome/ToyNet/TensorObj
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/u7630167/ToyNet/TensorObj/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/juneehome/ToyNet/TensorObj/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

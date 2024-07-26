@@ -19,8 +19,8 @@ public:
 private:
     // Setters
     void setData(std::vector<T> data);
-    void setStride();
-    void setBlocks();
+    void setStrideC();
+    void setBlocksC();
 };
 
 

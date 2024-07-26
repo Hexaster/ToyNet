@@ -9,7 +9,7 @@ template<typename T>
 TensorObj<T>::TensorObj(const std::vector<T> data, const std::vector<int> shape) {
     this->data = data;
     this->shape = shape;
-    setStride();
+    setStrideC();
 }
 
 template<typename T>
@@ -28,7 +28,7 @@ void TensorObj<T>::setData(const std::vector<T> data) {
      * If shape is one-dimensional, the stride is always [1].
      */
 template<typename T>
-void TensorObj<T>::setStride() {
+void TensorObj<T>::setStrideC() {
     this->stride.clear();
     this->stride.push_back(1);
     for (int d = this->shape.size()-1; d>0; d--) {
@@ -41,7 +41,7 @@ void TensorObj<T>::setStride() {
  * Given the shape, the number of blocks of the i-th layer is the multiplication of first i-1 dimensions
  */
 template<typename T>
-void TensorObj<T>::setBlocks() {
+void TensorObj<T>::setBlocksC() {
     this->blocks.clear();
     this->stride.push_back(1);
     for (int d = 0; d < this->shape.size(); d++) {

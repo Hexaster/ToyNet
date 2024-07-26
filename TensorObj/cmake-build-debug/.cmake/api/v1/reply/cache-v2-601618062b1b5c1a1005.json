@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/Users/u7630167/ToyNet/TensorObj/cmake-build-debug"
+			"value" : "/Users/juneehome/ToyNet/TensorObj/cmake-build-debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -115,7 +115,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/Volumes/CLion/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake"
+			"value" : "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake"
 		},
 		{
 			"name" : "CMAKE_CPACK_COMMAND",
@@ -127,7 +127,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/Volumes/CLion/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cpack"
+			"value" : "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cpack"
 		},
 		{
 			"name" : "CMAKE_CTEST_COMMAND",
@@ -139,7 +139,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/Volumes/CLion/CLion.app/Contents/bin/cmake/mac/aarch64/bin/ctest"
+			"value" : "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/ctest"
 		},
 		{
 			"name" : "CMAKE_CXX_COMPILER",
@@ -479,7 +479,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/Users/u7630167/ToyNet/TensorObj/cmake-build-debug/CMakeFiles/pkgRedirects"
+			"value" : "/Users/juneehome/ToyNet/TensorObj/cmake-build-debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -539,7 +539,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/Users/u7630167/ToyNet/TensorObj"
+			"value" : "/Users/juneehome/ToyNet/TensorObj"
 		},
 		{
 			"name" : "CMAKE_INSTALL_NAME_TOOL",
@@ -555,7 +555,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "/usr/bin/install_name_tool"
+			"value" : "/Users/juneehome/anaconda3/bin/install_name_tool"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -595,7 +595,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "/Volumes/CLion/CLion.app/Contents/bin/ninja/mac/aarch64/ninja"
+			"value" : "/Applications/CLion.app/Contents/bin/ninja/mac/aarch64/ninja"
 		},
 		{
 			"name" : "CMAKE_MODULE_LINKER_FLAGS",
@@ -759,7 +759,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "13.1"
+			"value" : ""
 		},
 		{
 			"name" : "CMAKE_OSX_SYSROOT",
@@ -771,7 +771,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "/Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk"
+			"value" : "/Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk"
 		},
 		{
 			"name" : "CMAKE_PLATFORM_INFO_INITIALIZED",
@@ -863,7 +863,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/Volumes/CLion/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-3.28"
+			"value" : "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-3.28"
 		},
 		{
 			"name" : "CMAKE_SHARED_LINKER_FLAGS",
@@ -1127,7 +1127,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/Users/u7630167/ToyNet/TensorObj/cmake-build-debug"
+			"value" : "/Users/juneehome/ToyNet/TensorObj/cmake-build-debug"
 		},
 		{
 			"name" : "TensorObj_IS_TOP_LEVEL",
@@ -1151,7 +1151,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/Users/u7630167/ToyNet/TensorObj"
+			"value" : "/Users/juneehome/ToyNet/TensorObj"
 		}
 	],
 	"kind" : "cache",

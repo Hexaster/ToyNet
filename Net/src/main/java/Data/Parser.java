@@ -1,5 +1,7 @@
 package Data;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,0 +1,4 @@
+# ninja log v6
+7	68	1721299476068654261	build.ninja	fd65d158df1aa686
+4	685	1721135101278348877	CMakeFiles/TensorObj.dir/TensorObj.cpp.o	4646bf07184717bd
+685	838	1721135101958664252	libTensorObj.dylib	3cb8cdd9f0a78e05

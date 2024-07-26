@@ -39,6 +39,9 @@ Such a structure is crucial when manipulating the tensor.
 @Component
 @Scope(value = "prototype")
 public class Tensor {
+    /*static{
+        System.loadLibrary("TensorObj");
+    }*/
     private DoubleArrayList data;
     private IntArrayList shape;
     private IntArrayList stride;
@@ -136,7 +139,8 @@ public class Tensor {
     /*
     Following methods manipulate the tensor.
     1. copy, copy a new tensor that with exactly same data and shape of a given tensor.
-    2.
+    2. get, the get() method fully imitates how numpy index arrays. However, due to the inflexibility of
+    the java language, the index will be presented as strings.
      */
 
     /**
@@ -251,9 +255,8 @@ public class Tensor {
         DoubleArrayList data = tensor.getData();
         IntArrayList shape = tensor.getShape();
         IntArrayList stride = tensor.getStride();
-        IntArrayList blocks = tensor.getBlocks();
         DoubleArrayList newData = new DoubleArrayList();
-
+        IntArrayList startAndEndIndices;
         // If it is the first layer, the stride[layer-1] is always 1
         int lastStride = layer==0?1:stride.getInt(layer-1);
 
@@ -267,81 +270,26 @@ public class Tensor {
             // Then parse commas to get indices.
             String indices = Parser.parseParentheses(sb).get(0);
             List<String> indicesList = Parser.parseComma(indices);
-
-            // For indicesList {idx1, idx2, ...}, add data to newData
-            for (int block = 0; block < blocks.getInt(layer); block++){
-                for (String index : indicesList){
-                    int indexInt = Integer.parseInt(index);
-                    if (indexInt < 0)
-                        indexInt += shape.getInt(layer);
-                    assert indexInt < shape.getInt(layer) : "index out of bounds";
-                    int startIdx = indexInt*stride.getInt(layer)+block*lastStride;
-                    int endIdx = (indexInt+1)*stride.getInt(layer)+block*lastStride;
-                    newData.addAll(data.subList(startIdx, endIdx));
-                }
-            }
-
+            startAndEndIndices = TensorGetHelper.getIndicesFromSbsWithBrackets(tensor, indicesList, layer, lastStride);
             // Update new shape
             shape.set(layer, indicesList.size());
         }
-
         // Without brackets
         else{
-            int startOffset;
-            int endOffset;
-            // Without colon
-            if (!sb.contains(":")){
-                startOffset = Integer.parseInt(sb);
-                if (startOffset < 0)
-                    startOffset += shape.getInt(layer);
-                endOffset = startOffset+1;
-                assert startOffset <= endOffset && startOffset < shape.getInt(layer) && endOffset <= shape.getInt(layer): "index out of bounds";
+            IntArrayList offsets = TensorGetHelper.getOffsetFromSbsWithoutBrackets(tensor, sb, layer);
+            startAndEndIndices = TensorGetHelper.offset2Indices(tensor, layer, lastStride, offsets.getInt(0), offsets.getInt(1));
+            int startOffset = offsets.getInt(0);
+            int endOffset = offsets.getInt(1);
+            shape.set(layer, endOffset - startOffset);
+        }
 
-                // Instead of remove one dimension directly, set it to 1 temporarily for accurate result
-                //shape.removeInt(layer);
-                shape.set(layer, 1);
-            }
-            // With a colon
-            else{
-                String[] indices = sb.split(":");
-                // :
-                if (indices.length == 0){
-                    startOffset = 0;
-                    endOffset = shape.getInt(layer);
-                }
-                // num:
-                else if (indices.length == 1){
-                    startOffset = Integer.parseInt(indices[0])<0?Integer.parseInt(indices[0])+shape.getInt(layer):Integer.parseInt(indices[0]);
-                    endOffset = shape.getInt(layer);
-                }
-                else if (indices.length == 2){
-                    // :num
-                    if (indices[0].isEmpty()){
-                        startOffset = 0;
-                    }
-                    // num:num
-                    else{
-                        startOffset = Integer.parseInt(indices[0])<0?Integer.parseInt(indices[0])+shape.getInt(layer):Integer.parseInt(indices[0]);
-                    }
-                    endOffset = Integer.parseInt(indices[1])<0?Integer.parseInt(indices[1])+shape.getInt(layer):Integer.parseInt(indices[1]);
-                } else{
-                    throw new IllegalArgumentException("invalid syntax");
-                }
-
-                assert startOffset <= endOffset && startOffset < shape.getInt(layer) && endOffset <= shape.getInt(layer): "index out of bounds";
-                shape.set(layer, endOffset - startOffset);
-            }
-
-            // For each block, add data to newData
-            for (int block = 0; block < blocks.getInt(layer); block++){
-                int startIdx = startOffset*stride.getInt(layer)+block*lastStride;
-                int endIdx = endOffset*stride.getInt(layer)+block*lastStride;
-                newData.addAll(data.subList(startIdx, endIdx));
-            }
+        for (int i = 0; i < startAndEndIndices.size(); i+=2){
+            int startIdx = startAndEndIndices.getInt(i);
+            int endIdx = startAndEndIndices.getInt(i+1);
+            newData.addAll(data.subList(startIdx, endIdx));
         }
         return (Tensor) this.context.getBean("tensorDir", newData, shape);
     }
-
 
     /**
      * Broadcast a short tensor to the long tensor
